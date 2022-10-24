@@ -7,10 +7,12 @@ package Views_pkg;
 
 import Controller_pkg.Conexion;
 import java.awt.HeadlessException;
+import java.awt.event.FocusListener;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
@@ -30,6 +32,7 @@ public class Vista extends javax.swing.JFrame {
     public Vista() {
         initComponents();
         show_Owners();
+        show_Pets();
         setLocationRelativeTo(null);
         
     }
@@ -52,7 +55,7 @@ owner[5] = rs.getString("contact");
 owner[6] = rs.getString("gender");
 
 modelo.addRow(owner);
-System.out.println(rs.getInt("id"));
+//System.out.println(rs.getInt("id"));
 }
 tbl_Owners.setModel(modelo);
 }catch(SQLException e){
@@ -66,8 +69,8 @@ String document = Txt_Document.getText();
 String contact = Txt_Contact.getText();
 String gender = Txt_Gender.getText();
 
-if (name.isEmpty()) {
-JOptionPane.showMessageDialog(this, "Falta ingresar el nombre del Dueño");
+if (name.isEmpty() || Txt_id_Document.getText().isEmpty() || document_type.isEmpty() || document.isEmpty() || contact.isEmpty() || gender.isEmpty()) {
+JOptionPane.showMessageDialog(this, "Falta ingresar algún campo del Dueño");
 }else{
 String query = "INSERT INTO `tb_pet_owners`(`owner`,`id_document`,`document_type`,`document`,`contact`,`gender`)" + " VALUES('" + name + "'," + id_document + ",'" + document_type + "','" + document + "','" + contact + "','" + gender + "')";
 try{
@@ -75,14 +78,14 @@ cn = con.getConnection();
 st = cn.createStatement();
 st.executeUpdate(query);
 JOptionPane.showMessageDialog(this, "El Dueño ha sido creado");
-clear_rows_table();
+clear_rows_tb_Owners();
 show_Owners();
 }catch(HeadlessException | SQLException e){
 JOptionPane.showMessageDialog(this, "No se pudo crear el Dueño");
 }
 }
 }
-    void clear_rows_table(){
+    void clear_rows_tb_Owners(){
 for (int i = 0; i < tbl_Owners.getRowCount(); i++) {
 modelo.removeRow(i);
 i = i-1;
@@ -106,10 +109,10 @@ String document_type = Txt_Document_Type.getText();
 String document = Txt_Document.getText();
 String contact = Txt_Contact.getText();
 String gender = Txt_Gender.getText();
-if (name.isEmpty()) {
-JOptionPane.showMessageDialog(this, "Falta ingresar el nombre del Dueño");
+if (name.isEmpty() || Txt_id_Document.getText().isEmpty() || document_type.isEmpty() || document.isEmpty() || contact.isEmpty() || gender.isEmpty()) {
+JOptionPane.showMessageDialog(this, "Falta ingresar un campo del Dueño");
 }else{
-String query = "UPDATE tb_pet_owner SET id_document = " + id_document + ", owner= '" + name + "',document_type= '" + document_type + "' ,document = '" + document + 
+String query = "UPDATE tb_pet_owners SET id_document = " + id_document + ", owner= '" + name + "',document_type= '" + document_type + "' ,document = '" + document + 
         "',contact= ' " + contact + "', gender = '" + gender + 
         "' WHERE id = " + id;
 //UPDATE tb_persons SET dni =dni, nombre= 'name' WHERE id = id
@@ -118,7 +121,7 @@ try{
 st = cn.createStatement();
 st.executeUpdate(query);
 JOptionPane.showMessageDialog(this, "El Dueño ha sido modificado con éxito");
-clear_rows_table();
+clear_rows_tb_Owners();
 show_Owners();
 }catch(HeadlessException | SQLException e){
 JOptionPane.showMessageDialog(this, "No se pudo modificar el Dueño");
@@ -131,6 +134,7 @@ JOptionPane.showMessageDialog(this, "No se pudo modificar el Dueño");
 int fila = tbl_Owners.getSelectedRow();
 int id=-1;
 boolean bandera=true;
+
 try{
     id = Integer.parseInt(txt_id.getText());
 }catch(Exception e){
@@ -141,15 +145,130 @@ bandera=false;
 if (fila == -1 || bandera== false ) {
 JOptionPane.showMessageDialog(this, "No has seleccionado un dueño");
 }else{
-System.out.println("ID: " + id);
+//System.out.println("ID: " + id);
 String query = "DELETE FROM tb_pet_owners WHERE id = " + id;
 try{
 cn = con.getConnection();
 st = cn.createStatement();
 st.executeUpdate(query);
-JOptionPane.showMessageDialog(this, "El Dueño ha sido eliminadcon exito");
-clear_rows_table();
+JOptionPane.showMessageDialog(this, "El Dueño ha sido eliminado con exito");
+clear_rows_tb_Owners();
     show_Owners();
+}catch(HeadlessException | SQLException e){
+    System.out.println(" No se pudo Eliminar, error:  >>> " + e );
+}
+}
+}
+ /**>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  * Pets/
+  * 
+  */
+ void show_Pets(){
+String sql = "SELECT * FROM tb_pet";
+try{
+cn = con.getConnection();
+st = cn.createStatement();
+rs = st.executeQuery(sql);
+//Los datos que devuelve la consulta se muestran en la tabla
+Object[]pet = new Object[4];
+modelo = (DefaultTableModel)tbl_Pet.getModel();
+while(rs.next()){
+pet[0] = rs.getInt("id");
+pet[1] = rs.getString("name");
+pet[2] = rs.getString("breed");
+pet[3] = rs.getInt("id_owner_pet");
+
+modelo.addRow(pet);
+//System.out.println(rs.getInt("id"));
+}
+tbl_Pet.setModel(modelo);
+}catch(SQLException e){
+}
+}
+    void add_Pets(){
+String name = txt_Pet_Name.getText();
+int id_pet = Integer.parseInt(txt_id_Pet.getText());
+String breed = txt_Breed.getText();
+int pet_owner_id = Integer.parseInt(txt_Owner_id.getText());
+
+if (name.isEmpty() || txt_id_Pet.getText().isEmpty() || breed.isEmpty() || txt_Owner_id.getText().isEmpty()) {
+JOptionPane.showMessageDialog(this, "Falta ingresar algún campo de la mascota ");
+}else{
+String query = "INSERT INTO `tb_pet`(`name`,id_pet,`breed`,id_owner_pet)" + " VALUES('" + name + "'," + id_pet+ ",'" + breed + "'," + pet_owner_id + ")";
+try{
+cn = con.getConnection();
+st = cn.createStatement();
+st.executeUpdate(query);
+JOptionPane.showMessageDialog(this, "La mascota ha sido creada con éxito");
+clear_rows_tb_Pets();
+show_Pets();
+}catch(HeadlessException | SQLException e){
+JOptionPane.showMessageDialog(this, "No se pudo crear la mascota");
+}
+}
+}
+    void clear_rows_tb_Pets(){
+for (int i = 0; i < tbl_Pet.getRowCount(); i++) {
+modelo.removeRow(i);
+i = i-1;
+}
+txt_id_Pet.setText("");
+txt_Pet_Name.setText("");
+txt_Breed.setText("");
+txt_Owner_id.setText("");
+    }
+    
+    void edit_Pets(){
+//Hacemos nuevamente lectura de los valores contenidos en los JTextField
+//Para identificar si el usuario modifico algún valor
+String name = txt_Pet_Name.getText();
+int id_pet = Integer.parseInt(txt_id_Pet.getText());
+String breed = txt_Breed.getText();
+int pet_owner_id = Integer.parseInt(txt_Owner_id.getText());
+if (name.isEmpty() || txt_id_Pet.getText().isEmpty() || breed.isEmpty() || txt_Owner_id.getText().isEmpty()) {
+JOptionPane.showMessageDialog(this, "Falta ingresar un campo de la mascota");
+}else{
+String query = "UPDATE tb_pet SET name = '" + name + "', breed '" + breed + "',id_owner_pet= " + pet_owner_id + 
+        "WHERE id = " + id_pet;
+//UPDATE tb_persons SET dni =dni, nombre= 'name' WHERE id = id
+try{
+    cn = con.getConnection();
+st = cn.createStatement();
+st.executeUpdate(query);
+JOptionPane.showMessageDialog(this, "la mascota ha sido modificada con éxito");
+clear_rows_tb_Pets();
+show_Pets();
+}catch(HeadlessException | SQLException e){
+JOptionPane.showMessageDialog(this, "No se pudo modificar la mascota");
+    System.out.println(">>>>> " + e);
+}
+}
+}
+
+ void delete_Pets(){
+int fila = tbl_Pet.getSelectedRow();
+int id=-1;
+boolean bandera=true;
+
+try{
+    id = Integer.parseInt(txt_id_Pet.getText());
+}catch(Exception e){
+JOptionPane.showMessageDialog(this, "No has ingresado un id");
+bandera=false;
+}
+
+if (fila == -1 || bandera== false ) {
+JOptionPane.showMessageDialog(this, "No has seleccionado una mascota");
+}else{
+System.out.println("ID: " + id);
+String query = "DELETE FROM tb_pet WHERE id = " + id;
+try{
+cn = con.getConnection();
+st = cn.createStatement();
+st.executeUpdate(query);
+JOptionPane.showMessageDialog(this, "La mascota ha sido eliminada con exito");
+clear_rows_tb_Pets();
+    show_Pets();
 }catch(HeadlessException | SQLException e){
     System.out.println(" No se pudo Eliminar, error:  >>> " + e );
 }
@@ -189,6 +308,18 @@ clear_rows_table();
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
+        scrollPane2 = new java.awt.ScrollPane();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        tbl_Pet = new javax.swing.JTable();
+        jLabel9 = new javax.swing.JLabel();
+        txt_id_Pet = new javax.swing.JTextField();
+        txt_Pet_Name = new javax.swing.JTextField();
+        txt_Breed = new javax.swing.JTextField();
+        txt_Owner_id = new javax.swing.JTextField();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -353,15 +484,82 @@ clear_rows_table();
 
         jTabbedPane1.addTab("Dueños", jPanel2);
 
+        tbl_Pet.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "ccódigo", "nombre", "raza", "codigo_dueño"
+            }
+        ));
+        jScrollPane2.setViewportView(tbl_Pet);
+
+        scrollPane2.add(jScrollPane2);
+
+        jLabel9.setText("MASCOTAS");
+
+        jLabel10.setText("Código");
+
+        jLabel11.setText("Nombre");
+
+        jLabel12.setText("Raza");
+
+        jLabel13.setText("Codigo_Dueño");
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1025, Short.MAX_VALUE)
+            .addComponent(scrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGap(465, 465, 465)
+                .addComponent(jLabel9)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addContainerGap(332, Short.MAX_VALUE)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel13)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(txt_Owner_id, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel12)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(txt_Breed, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel11)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(txt_Pet_Name, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel10)
+                        .addGap(208, 208, 208)
+                        .addComponent(txt_id_Pet, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(210, 210, 210))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 715, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel9)
+                .addGap(33, 33, 33)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txt_id_Pet, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel10))
+                        .addGap(33, 33, 33)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txt_Pet_Name, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel11))
+                        .addGap(33, 33, 33)
+                        .addComponent(txt_Breed, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel12))
+                .addGap(33, 33, 33)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txt_Owner_id, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel13))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 215, Short.MAX_VALUE)
+                .addComponent(scrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         jTabbedPane1.addTab("Mascotas", jPanel3);
@@ -451,6 +649,10 @@ clear_rows_table();
     private javax.swing.JButton btn_Delete_Owner;
     private javax.swing.JButton btn_Update_Owner;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -458,13 +660,21 @@ clear_rows_table();
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
     private java.awt.ScrollPane scrollPane1;
+    private java.awt.ScrollPane scrollPane2;
     private javax.swing.JTable tbl_Owners;
+    private javax.swing.JTable tbl_Pet;
+    private javax.swing.JTextField txt_Breed;
+    private javax.swing.JTextField txt_Owner_id;
+    private javax.swing.JTextField txt_Pet_Name;
     private javax.swing.JTextField txt_id;
+    private javax.swing.JTextField txt_id_Pet;
     // End of variables declaration//GEN-END:variables
 }
