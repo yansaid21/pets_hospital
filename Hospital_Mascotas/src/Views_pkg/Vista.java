@@ -45,16 +45,15 @@ cn = con.getConnection();
 st = cn.createStatement();
 rs = st.executeQuery(sql);
 //Los datos que devuelve la consulta se muestran en la tabla
-Object[]owner = new Object[7];
+Object[]owner = new Object[6];
 modelo = (DefaultTableModel)tbl_Owners.getModel();
 while(rs.next()){
 owner[0] = rs.getInt("id");
 owner[1] = rs.getString("owner");
-owner[2] = rs.getInt("id_document");
-owner[3] = rs.getString("document_type");
-owner[4] = rs.getString("document");
-owner[5] = rs.getString("contact");
-owner[6] = rs.getString("gender");
+owner[2] = rs.getString("document_type");
+owner[3] = rs.getString("document");
+owner[4] = rs.getString("contact");
+owner[5] = rs.getString("gender");
 
 modelo.addRow(owner);
 //System.out.println(rs.getInt("id"));
@@ -65,17 +64,16 @@ tbl_Owners.setModel(modelo);
 }
     void add_Owner(){
 String name = Txt_Owner.getText();
-int id_document = Integer.parseInt(Txt_id_Document.getText());
 String document_type = Txt_Document_Type.getText();
 String document = Txt_Document.getText();
 String contact = Txt_Contact.getText();
 String gender = Txt_Gender.getText();
 
-if (name.isEmpty() || Txt_id_Document.getText().isEmpty() || document_type.isEmpty() || document.isEmpty() || contact.isEmpty() || gender.isEmpty()) {
+if (name.isEmpty() || document_type.isEmpty() || document.isEmpty() || contact.isEmpty() || gender.isEmpty()) {
 JOptionPane.showMessageDialog(this, "Falta ingresar algún campo del Dueño");
 }else{
-String query = "INSERT INTO `tb_pet_owners`(`owner`,`id_document`,`document_type`,`document`,`contact`,`gender`)" + " VALUES('" + name + "'," + id_document + ",'" + document_type + "','" + document + "','" + contact + "','" + gender + "')";
-try{
+String query = "INSERT INTO `tb_pet_owners`(`owner`,`document_type`,`document`,`contact`,`gender`)" + " VALUES('" + name +  "','" + document_type + "','" + document + "','" + contact + "','" + gender + "')";
+try{    
 cn = con.getConnection();
 st = cn.createStatement();
 st.executeUpdate(query);
@@ -83,7 +81,7 @@ JOptionPane.showMessageDialog(this, "El Dueño ha sido creado");
 clear_rows_tb_Owners();
 show_Owners();
 }catch(HeadlessException | SQLException e){
-JOptionPane.showMessageDialog(this, "No se pudo crear el Dueño");
+JOptionPane.showMessageDialog(this, "No se pudo crear el Dueño" + e);
 }
 }
 }
@@ -97,7 +95,6 @@ i = i-1;
  //}
 txt_id.setText("");
 Txt_Owner.setText("");
-Txt_id_Document.setText("");
 Txt_Document_Type.setText("");
 Txt_Document.setText("");
 Txt_Contact.setText("");
@@ -109,15 +106,14 @@ Txt_Gender.setText("");
 //Para identificar si el usuario modifico algún valor
 int id = Integer.parseInt(txt_id.getText());
 String name = Txt_Owner.getText();
-int id_document = Integer.parseInt(Txt_id_Document.getText());
 String document_type = Txt_Document_Type.getText();
 String document = Txt_Document.getText();
 String contact = Txt_Contact.getText();
 String gender = Txt_Gender.getText();
-if (name.isEmpty() || Txt_id_Document.getText().isEmpty() || document_type.isEmpty() || document.isEmpty() || contact.isEmpty() || gender.isEmpty()) {
+if (name.isEmpty() || document_type.isEmpty() || document.isEmpty() || contact.isEmpty() || gender.isEmpty()) {
 JOptionPane.showMessageDialog(this, "Falta ingresar un campo del Dueño");
 }else{
-String query = "UPDATE tb_pet_owners SET id_document = " + id_document + ", owner= '" + name + "',document_type= '" + document_type + "' ,document = '" + document + 
+String query = "UPDATE tb_pet_owners SET owner= '" + name + "',document_type= '" + document_type + "' ,document = '" + document + 
         "',contact= ' " + contact + "', gender = '" + gender + 
         "' WHERE id = " + id;
 //UPDATE tb_persons SET dni =dni, nombre= 'name' WHERE id = id
@@ -345,8 +341,24 @@ clear_rows_tb_Pets();
         txt_id_Pet.setEnabled(false);
         this.combo_1.setEnabled(false);
     }
+    int search_hopital_id(String name_hospital){
+        int respuesta=0;
+        String sql = "SELECT * FROM tb_hospital WHERE name= " + name_hospital;
+    try{
+    cn = con.getConnection();
+    st = cn.createStatement();
+    ResultSet res = st.executeQuery(sql);
+    while(res.next()){
+        respuesta=res.getInt("id");
+    }
+    }catch(HeadlessException | SQLException e){
+      System.out.println("errror en encontrar el id del hospital >>>>>> "+ e);
+     }
+        return respuesta;
+    }
+    
     void update_Hospital_pet(int id_pet){
-        String sql = "UPDATE tb_pet_hospital SET id_hospital = " + (this.combo_1.getSelectedIndex()+1)+  " WHERE id_pet = " + id_pet;
+        String sql = "UPDATE tb_pet_hospital SET id_hospital = " + search_hopital_id((String) this.combo_1.getSelectedItem())+  " WHERE id_pet = " + id_pet;
         try{
     cn = con.getConnection();
     st = cn.createStatement();
@@ -354,6 +366,34 @@ clear_rows_tb_Pets();
     }catch(HeadlessException | SQLException e){
       System.out.println("errror en actualizar el hospital >>>>>> "+ e);
      }
+    }
+    
+    void add_Hospital_paralelo(String name){
+        int id_pet=0;
+        String sql= "SELECT * FROM tb_pet WHERE name = " + name ;
+        try{
+    cn = con.getConnection();
+    st = cn.createStatement();
+    ResultSet res = st.executeQuery(sql);
+    while(res.next()){
+        id_pet=res.getInt("id");
+    }
+    }catch(HeadlessException | SQLException e){
+      System.out.println("error en id mascota añadir con hospital >>>>>> "+ e);
+     }
+        
+        String query = "INSERT INTO tb_pet_hospital (id_pet,id_hospital) VALUES (" + id_pet+" , " + search_hopital_id((String)this.combo_1.getSelectedItem()) + ");";
+try{
+cn = con.getConnection();
+st = cn.createStatement();
+st.executeUpdate(query);
+JOptionPane.showMessageDialog(this, "La mascota ahora tiene un hospital :) ");
+clear_rows_tb_Pets();
+    show_Pets();
+    this.combo_1.setEnabled(false);
+}catch(HeadlessException | SQLException e){
+    System.out.println(" No se pudo agregar el hospital , error:  >>> " + e );
+}
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -376,14 +416,12 @@ clear_rows_tb_Pets();
         jLabel1 = new javax.swing.JLabel();
         Txt_Owner = new javax.swing.JTextField();
         txt_id = new javax.swing.JTextField();
-        Txt_id_Document = new javax.swing.JTextField();
         Txt_Document_Type = new javax.swing.JTextField();
         Txt_Document = new javax.swing.JTextField();
         Txt_Contact = new javax.swing.JTextField();
         Txt_Gender = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
@@ -447,7 +485,7 @@ clear_rows_tb_Pets();
 
             },
             new String [] {
-                "Código", "Dueño", "Id_Documento", "Tipo Documento", "Num_Documento", "Contacto", "Género"
+                "Código", "Nombre_Dueño", "Tipo_Documento", "Num_Documento", "Contacto", "Género"
             }
         ));
         tbl_Owners.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -470,13 +508,11 @@ clear_rows_tb_Pets();
             }
         });
 
-        jLabel2.setText("Dueño");
+        jLabel2.setText("Nombre_Dueño");
 
         jLabel3.setText("Código");
 
-        jLabel4.setText("Id_Documento");
-
-        jLabel5.setText("Tipo Documento");
+        jLabel5.setText("Tipo_Documento");
 
         jLabel6.setText("Num_Documento");
 
@@ -503,7 +539,6 @@ clear_rows_tb_Pets();
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel4)
                                         .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING)
                                         .addComponent(jLabel7)
                                         .addComponent(jLabel3)
@@ -515,7 +550,6 @@ clear_rows_tb_Pets();
                                     .addComponent(Txt_Owner, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                         .addComponent(txt_id, javax.swing.GroupLayout.DEFAULT_SIZE, 208, Short.MAX_VALUE)
-                                        .addComponent(Txt_id_Document)
                                         .addComponent(Txt_Document_Type)
                                         .addComponent(Txt_Document)
                                         .addComponent(Txt_Contact)
@@ -538,39 +572,32 @@ clear_rows_tb_Pets();
                     .addComponent(txt_id, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(Txt_Owner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel4)
-                    .addComponent(Txt_id_Document, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(16, 16, 16)
+                .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(Txt_Document_Type, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5))
-                .addGap(12, 12, 12)
+                .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(Txt_Document, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel6))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(Txt_Contact, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(Txt_Gender, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel8))
-                        .addGap(75, 75, 75)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(btn_Add_Owner)
-                            .addComponent(btn_Update_Owner)
-                            .addComponent(btn_Delete_Owner))
-                        .addGap(99, 99, 99)
-                        .addComponent(scrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 212, Short.MAX_VALUE))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel7)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(Txt_Contact, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel7))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(Txt_Gender, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel8))
+                .addGap(95, 95, 95)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btn_Add_Owner)
+                    .addComponent(btn_Update_Owner)
+                    .addComponent(btn_Delete_Owner))
+                .addGap(53, 53, 53)
+                .addComponent(scrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -806,7 +833,6 @@ String genero = (String) tbl_Owners.getValueAt(row, 6);
 
 //System.out.println(id + " - " + name + " - " + document+ " - " +department);
 txt_id.setText("" + id);
-Txt_id_Document.setText("" + id_document);
 Txt_Document.setText("" + documento);
 Txt_Owner.setText(name);
 Txt_Document_Type.setText(tip_doc);
@@ -830,7 +856,7 @@ try{
 cn = con.getConnection();
 st = cn.createStatement();
 st.executeUpdate(query);
-JOptionPane.showMessageDialog(this, "La mascota ya tiene un hospital :) ");
+JOptionPane.showMessageDialog(this, "La mascota ahora tiene un hospital :) ");
 clear_rows_tb_Pets();
     show_Pets();
     this.combo_1.setEnabled(false);
@@ -881,7 +907,6 @@ clear_rows_tb_Pets();
     private javax.swing.JTextField Txt_Document_Type;
     private javax.swing.JTextField Txt_Gender;
     private javax.swing.JTextField Txt_Owner;
-    private javax.swing.JTextField Txt_id_Document;
     private javax.swing.JButton btn_Add_Owner;
     private javax.swing.JButton btn_Delete_Owner;
     private javax.swing.JButton btn_Update_Owner;
@@ -895,7 +920,6 @@ clear_rows_tb_Pets();
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
