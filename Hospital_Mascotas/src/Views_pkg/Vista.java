@@ -330,8 +330,17 @@ clear_rows_tb_Pets();
     void box (){
         
         this.combo_1.removeAllItems();
-        this.combo_1.addItem("San Miguel");
-        this.combo_1.addItem("Mascoticas");
+        String sql = "SELECT * FROM tb_hospital ";
+    try{
+    cn = con.getConnection();
+    st = cn.createStatement();
+    ResultSet res = st.executeQuery(sql);
+    while(res.next()){
+        this.combo_1.addItem(res.getString("name"));
+    }
+    }catch(HeadlessException | SQLException e){
+      System.out.println("errror en id hospital >>>>>> "+ e);
+     }
         txt_id.setEnabled(false);
         txt_id_Pet.setEnabled(false);
         this.combo_1.setEnabled(false);
