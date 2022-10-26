@@ -26,6 +26,7 @@ public class Vista extends javax.swing.JFrame {
         Statement st;
         ResultSet rs;
         DefaultTableModel modelo;
+        DefaultTableModel modeloA;
     /**
      * Creates new form Vista
      */
@@ -33,6 +34,7 @@ public class Vista extends javax.swing.JFrame {
         initComponents();
         show_Owners();
         show_Pets();
+        box();
         setLocationRelativeTo(null);
         
     }
@@ -89,7 +91,10 @@ JOptionPane.showMessageDialog(this, "No se pudo crear el Dueño");
 for (int i = 0; i < tbl_Owners.getRowCount(); i++) {
 modelo.removeRow(i);
 i = i-1;
-}
+} 
+//while(modelo.getRowCount()>0){
+   //  modelo.removeRow(0);
+ //}
 txt_id.setText("");
 Txt_Owner.setText("");
 Txt_id_Document.setText("");
@@ -132,17 +137,10 @@ JOptionPane.showMessageDialog(this, "No se pudo modificar el Dueño");
 
  void delete_Owner(){
 int fila = tbl_Owners.getSelectedRow();
-int id=-1;
-boolean bandera=true;
+int id = Integer.parseInt(txt_id.getText());
 
-try{
-    id = Integer.parseInt(txt_id.getText());
-}catch(Exception e){
-JOptionPane.showMessageDialog(this, "No has ingresado un id");
-bandera=false;
-}
 
-if (fila == -1 || bandera== false ) {
+if (fila == -1 ) {
 JOptionPane.showMessageDialog(this, "No has seleccionado un dueño");
 }else{
 //System.out.println("ID: " + id);
@@ -170,8 +168,8 @@ cn = con.getConnection();
 st = cn.createStatement();
 rs = st.executeQuery(sql);
 //Los datos que devuelve la consulta se muestran en la tabla
-Object[]pet = new Object[5];
-modelo = (DefaultTableModel)tbl_Pet.getModel();
+Object[]pet = new Object[6];
+modeloA = (DefaultTableModel)tbl_Pet.getModel();
 while(rs.next()){
  //contador++;
     int id_pet=rs.getInt("id");
@@ -182,13 +180,14 @@ while(rs.next()){
     //System.out.println(" rs.next()  >>>>>>>>>>> ");
     String pet_owner=search_pet_owner(idowner);
     pet[3] = pet_owner;
+    pet[4] = idowner;
     String name_Hospital= get_Hospital_name(id_pet);
-    pet[4] = name_Hospital;
+    pet[5] = name_Hospital;
 
-modelo.addRow(pet);
+modeloA.addRow(pet);
 //System.out.println(rs.getInt("id"));
 }
-tbl_Pet.setModel(modelo);
+tbl_Pet.setModel(modeloA);
 }catch(SQLException e){
     System.out.println(" error en table pet >>>>>>" + e);
 }
@@ -216,7 +215,7 @@ JOptionPane.showMessageDialog(this, "No se pudo crear la mascota");
 }
     void clear_rows_tb_Pets(){
 for (int i = 0; i < tbl_Pet.getRowCount(); i++) {
-modelo.removeRow(i);
+modeloA.removeRow(i);
 i = i-1;
 }
 txt_id_Pet.setText("");
@@ -242,6 +241,7 @@ try{
     cn = con.getConnection();
 st = cn.createStatement();
 st.executeUpdate(query);
+    update_Hospital_pet(id_pet);
 JOptionPane.showMessageDialog(this, "la mascota ha sido modificada con éxito");
 clear_rows_tb_Pets();
 show_Pets();
@@ -254,17 +254,10 @@ JOptionPane.showMessageDialog(this, "No se pudo modificar la mascota");
 
  void delete_Pets(){
 int fila = tbl_Pet.getSelectedRow();
-int id=-1;
-boolean bandera=true;
+int id = Integer.parseInt(txt_id_Pet.getText());
 
-try{
-    id = Integer.parseInt(txt_id_Pet.getText());
-}catch(Exception e){
-JOptionPane.showMessageDialog(this, "No has ingresado un id");
-bandera=false;
-}
 
-if (fila == -1 || bandera== false ) {
+if (fila == -1) {
 JOptionPane.showMessageDialog(this, "No has seleccionado una mascota");
 }else{
 System.out.println("ID: " + id);
@@ -276,6 +269,7 @@ st.executeUpdate(query);
 JOptionPane.showMessageDialog(this, "La mascota ha sido eliminada con exito");
 clear_rows_tb_Pets();
     show_Pets();
+    this.combo_1.setEnabled(false);
 }catch(HeadlessException | SQLException e){
     System.out.println(" No se pudo Eliminar, error:  >>> " + e );
 }
@@ -294,7 +288,7 @@ clear_rows_tb_Pets();
     
      }
      }catch(HeadlessException | SQLException e){
-         System.out.println("errror en nombre dueño mascota >>>>>> "+ e);
+         System.out.println("error en nombre dueño mascota >>>>>> "+ e);
      }
      return nombresito;
     }
@@ -302,7 +296,7 @@ clear_rows_tb_Pets();
  int get_id_Hospital(int id_pet){
     int respuesta=0;
     
-     String sql = "SELECT * FROM tb_pet_hospital WHERE id_pet= " + id_pet;
+    String sql = "SELECT * FROM tb_pet_hospital WHERE id_pet= " + id_pet;
     try{
     cn = con.getConnection();
     st = cn.createStatement();
@@ -331,6 +325,26 @@ clear_rows_tb_Pets();
       System.out.println("errror en name hospital >>>>>> "+ e);
      }
         return respuesta;
+    }
+    
+    void box (){
+        
+        this.combo_1.removeAllItems();
+        this.combo_1.addItem("San Miguel");
+        this.combo_1.addItem("Mascoticas");
+        txt_id.setEnabled(false);
+        txt_id_Pet.setEnabled(false);
+        this.combo_1.setEnabled(false);
+    }
+    void update_Hospital_pet(int id_pet){
+        String sql = "UPDATE tb_pet_hospital SET id_hospital = " + (this.combo_1.getSelectedIndex()+1)+  " WHERE id_pet = " + id_pet;
+        try{
+    cn = con.getConnection();
+    st = cn.createStatement();
+    st.executeUpdate(sql);
+    }catch(HeadlessException | SQLException e){
+      System.out.println("errror en actualizar el hospital >>>>>> "+ e);
+     }
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -381,6 +395,9 @@ clear_rows_tb_Pets();
         jToggleButton1 = new javax.swing.JToggleButton();
         jToggleButton2 = new javax.swing.JToggleButton();
         jToggleButton3 = new javax.swing.JToggleButton();
+        jLabel14 = new javax.swing.JLabel();
+        combo_1 = new javax.swing.JComboBox<>();
+        jButton1 = new javax.swing.JButton();
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -424,6 +441,11 @@ clear_rows_tb_Pets();
                 "Código", "Dueño", "Id_Documento", "Tipo Documento", "Num_Documento", "Contacto", "Género"
             }
         ));
+        tbl_Owners.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tbl_OwnersMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(tbl_Owners);
         if (tbl_Owners.getColumnModel().getColumnCount() > 0) {
             tbl_Owners.getColumnModel().getColumn(1).setResizable(false);
@@ -550,9 +572,14 @@ clear_rows_tb_Pets();
 
             },
             new String [] {
-                "código", "nombre", "raza", "codigo_dueño", "Hospital"
+                "Código", "Nombre", "Raza", "Dueño", "Codigo_Dueño", "Hospital"
             }
         ));
+        tbl_Pet.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tbl_PetMouseClicked(evt);
+            }
+        });
         jScrollPane2.setViewportView(tbl_Pet);
 
         scrollPane2.add(jScrollPane2);
@@ -588,6 +615,17 @@ clear_rows_tb_Pets();
             }
         });
 
+        jLabel14.setText("Hospital");
+
+        combo_1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
+        jButton1.setText("Añadir Hospital");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -599,31 +637,37 @@ clear_rows_tb_Pets();
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                 .addContainerGap(155, Short.MAX_VALUE)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addComponent(jToggleButton1)
+                .addGap(58, 58, 58)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jToggleButton1)
-                        .addGap(138, 138, 138)
-                        .addComponent(jToggleButton2)
-                        .addGap(160, 160, 160)
-                        .addComponent(jToggleButton3))
-                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel14)
+                        .addGap(267, 267, 267)
+                        .addComponent(combo_1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(jPanel3Layout.createSequentialGroup()
                             .addComponent(jLabel13)
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(txt_Owner_id, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addGroup(jPanel3Layout.createSequentialGroup()
                             .addComponent(jLabel12)
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(txt_Breed, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addGroup(jPanel3Layout.createSequentialGroup()
                             .addComponent(jLabel11)
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(txt_Pet_Name, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addGroup(jPanel3Layout.createSequentialGroup()
                             .addComponent(jLabel10)
                             .addGap(208, 208, 208)
-                            .addComponent(txt_id_Pet, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addGap(210, 210, 210))
+                            .addComponent(txt_id_Pet, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jToggleButton2)
+                        .addGap(70, 70, 70)
+                        .addComponent(jToggleButton3)
+                        .addGap(85, 85, 85)
+                        .addComponent(jButton1)))
+                .addGap(179, 179, 179))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -647,11 +691,16 @@ clear_rows_tb_Pets();
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txt_Owner_id, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel13))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 93, Short.MAX_VALUE)
+                .addGap(23, 23, 23)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel14)
+                    .addComponent(combo_1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 44, Short.MAX_VALUE)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jToggleButton1)
                     .addComponent(jToggleButton2)
-                    .addComponent(jToggleButton3))
+                    .addComponent(jToggleButton3)
+                    .addComponent(jButton1))
                 .addGap(90, 90, 90)
                 .addComponent(scrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -712,6 +761,76 @@ clear_rows_tb_Pets();
         delete_Pets();
     }//GEN-LAST:event_jToggleButton3ActionPerformed
 
+    private void tbl_PetMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbl_PetMouseClicked
+       int row = tbl_Pet.getSelectedRow();
+System.out.println(row);
+if (row < 0) {
+JOptionPane.showMessageDialog(this, "Debes seleccionar un departamento");
+} else {
+int id = Integer.parseInt((String) tbl_Pet.getValueAt(row, 0).toString());
+String raza = (String) tbl_Pet.getValueAt(row, 2).toString();
+int dueño = Integer.parseInt((String) tbl_Pet.getValueAt(row,4).toString());
+String name = (String) tbl_Pet.getValueAt(row, 1);
+//System.out.println(id + " - " + name + " - " + raza+ " - " +dueño);
+txt_id_Pet.setText("" + id);
+txt_Breed.setText(raza);
+txt_Owner_id.setText("" + dueño);
+txt_Pet_Name.setText(name);
+this.combo_1.setEnabled(true);
+}
+    }//GEN-LAST:event_tbl_PetMouseClicked
+
+    private void tbl_OwnersMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbl_OwnersMouseClicked
+        // TODO add your handling code here:
+        int row = tbl_Owners.getSelectedRow();
+System.out.println(row);
+if (row < 0) {
+JOptionPane.showMessageDialog(this, "Debes seleccionar un departamento");
+} else {
+int id = Integer.parseInt((String) tbl_Owners.getValueAt(row, 0).toString());
+int id_document = Integer.parseInt((String) tbl_Owners.getValueAt(row, 2).toString());
+String documento = (String) tbl_Owners.getValueAt(row,4).toString();
+String tip_doc= (String) tbl_Owners.getValueAt(row, 3);
+String name = (String) tbl_Owners.getValueAt(row, 1);
+String contacto = (String) tbl_Owners.getValueAt(row, 5);
+String genero = (String) tbl_Owners.getValueAt(row, 6);
+
+//System.out.println(id + " - " + name + " - " + document+ " - " +department);
+txt_id.setText("" + id);
+Txt_id_Document.setText("" + id_document);
+Txt_Document.setText("" + documento);
+Txt_Owner.setText(name);
+Txt_Document_Type.setText(tip_doc);
+Txt_Contact.setText(contacto);
+Txt_Gender.setText(genero);
+}
+    }//GEN-LAST:event_tbl_OwnersMouseClicked
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        int fila = tbl_Pet.getSelectedRow();
+boolean bandera=true;
+    int id = Integer.parseInt(txt_id_Pet.getText());
+
+if (fila == -1 || bandera== false ) {
+JOptionPane.showMessageDialog(this, "No has seleccionado una mascota para añadirle el hospital");
+}else{
+System.out.println("ID: " + id);
+String query = "INSERT INTO tb_pet_hospital (id_pet,id_hospital) VALUES (" + id+" , " + (this.combo_1.getSelectedIndex()+1) + ");";
+try{
+cn = con.getConnection();
+st = cn.createStatement();
+st.executeUpdate(query);
+JOptionPane.showMessageDialog(this, "La mascota ya tiene un hospital :) ");
+clear_rows_tb_Pets();
+    show_Pets();
+    this.combo_1.setEnabled(false);
+}catch(HeadlessException | SQLException e){
+    System.out.println(" No se pudo agregar el hospital , error:  >>> " + e );
+}
+}
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -757,11 +876,14 @@ clear_rows_tb_Pets();
     private javax.swing.JButton btn_Add_Owner;
     private javax.swing.JButton btn_Delete_Owner;
     private javax.swing.JButton btn_Update_Owner;
+    private javax.swing.JComboBox<String> combo_1;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
