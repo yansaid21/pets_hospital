@@ -170,19 +170,27 @@ cn = con.getConnection();
 st = cn.createStatement();
 rs = st.executeQuery(sql);
 //Los datos que devuelve la consulta se muestran en la tabla
-Object[]pet = new Object[4];
+Object[]pet = new Object[5];
 modelo = (DefaultTableModel)tbl_Pet.getModel();
 while(rs.next()){
-pet[0] = rs.getInt("id");
-pet[1] = rs.getString("name");
-pet[2] = rs.getString("breed");
-pet[3] = rs.getInt("id_owner_pet");
+ //contador++;
+    int id_pet=rs.getInt("id");
+    pet[0] = id_pet;
+    pet[1] = rs.getString("name");
+    pet[2] = rs.getString("breed");
+    int idowner=rs.getInt("id_owner_pet");
+    //System.out.println(" rs.next()  >>>>>>>>>>> ");
+    String pet_owner=search_pet_owner(idowner);
+    pet[3] = pet_owner;
+    String name_Hospital= get_Hospital_name(id_pet);
+    pet[4] = name_Hospital;
 
 modelo.addRow(pet);
 //System.out.println(rs.getInt("id"));
 }
 tbl_Pet.setModel(modelo);
 }catch(SQLException e){
+    System.out.println(" error en table pet >>>>>>" + e);
 }
 }
     void add_Pets(){
@@ -273,6 +281,57 @@ clear_rows_tb_Pets();
 }
 }
 }
+ 
+ String search_pet_owner(int id){
+     String nombresito="";
+     try{
+       String sql = "SELECT * from tb_pet_owners WHERE id = " + id;
+    cn = con.getConnection();
+    st = cn.createStatement();
+    ResultSet res = st.executeQuery(sql);
+    while(res.next()){
+    nombresito=res.getString("owner");
+    
+     }
+     }catch(HeadlessException | SQLException e){
+         System.out.println("errror en nombre dueño mascota >>>>>> "+ e);
+     }
+     return nombresito;
+    }
+    
+ int get_id_Hospital(int id_pet){
+    int respuesta=0;
+    
+     String sql = "SELECT * FROM tb_pet_hospital WHERE id_pet= " + id_pet;
+    try{
+    cn = con.getConnection();
+    st = cn.createStatement();
+    ResultSet res = st.executeQuery(sql);
+    while(res.next()){
+        respuesta= res.getInt("id_hospital");
+    }
+    }catch(HeadlessException | SQLException e){
+      System.out.println("errror en id hospital >>>>>> "+ e);
+     }
+    return respuesta;
+ }
+ 
+    String get_Hospital_name(int id_pet){
+        String respuesta="";
+        int id_Hospital=get_id_Hospital(id_pet);
+        String sql = "SELECT * FROM tb_hospital WHERE id= " + id_Hospital;
+        try{
+    cn = con.getConnection();
+    st = cn.createStatement();
+    ResultSet res = st.executeQuery(sql);
+    while(res.next()){
+        respuesta= res.getString("name");
+    }
+    }catch(HeadlessException | SQLException e){
+      System.out.println("errror en name hospital >>>>>> "+ e);
+     }
+        return respuesta;
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -491,7 +550,7 @@ clear_rows_tb_Pets();
 
             },
             new String [] {
-                "ccódigo", "nombre", "raza", "codigo_dueño"
+                "código", "nombre", "raza", "codigo_dueño", "Hospital"
             }
         ));
         jScrollPane2.setViewportView(tbl_Pet);

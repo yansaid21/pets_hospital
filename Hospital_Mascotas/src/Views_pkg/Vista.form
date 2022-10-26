@@ -449,15 +449,21 @@
                     <Component class="javax.swing.JTable" name="tbl_Pet">
                       <Properties>
                         <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
-                          <Table columnCount="4" rowCount="0">
-                            <Column editable="true" title="cc&#xf3;digo" type="java.lang.Object"/>
+                          <Table columnCount="5" rowCount="0">
+                            <Column editable="true" title="c&#xf3;digo" type="java.lang.Object"/>
                             <Column editable="true" title="nombre" type="java.lang.Object"/>
                             <Column editable="true" title="raza" type="java.lang.Object"/>
                             <Column editable="true" title="codigo_due&#xf1;o" type="java.lang.Object"/>
+                            <Column editable="true" title="Hospital" type="java.lang.Object"/>
                           </Table>
                         </Property>
                         <Property name="columnModel" type="javax.swing.table.TableColumnModel" editor="org.netbeans.modules.form.editors2.TableColumnModelEditor">
                           <TableColumnModel selectionModel="0">
+                            <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
+                              <Title/>
+                              <Editor/>
+                              <Renderer/>
+                            </Column>
                             <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
                               <Title/>
                               <Editor/>
